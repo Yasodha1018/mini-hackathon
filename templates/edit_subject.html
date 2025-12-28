@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Subject</title>
+</head>
+<body>
+
+<h2>Edit Subject</h2>
+
+<form method="POST">
+    <input type="text" name="subject_name"
+           value="{{ subject.subject_name }}" required>
+
+    <input type="date" name="exam_date"
+           value="{{ subject.exam_date }}">
+
+    <input type="number" name="self_rating"
+           min="1" max="10"
+           value="{{ subject.self_rating }}">
+
+    <button type="submit">Update</button>
+</form>
+
+</body>
+</html>
