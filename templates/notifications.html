@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - AI Study Planner</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .nav-btn { padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .nav-btn:hover { background: var(--secondary); }
+        .section { background: white; padding: 25px; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: var(--primary); margin-top: 0; }
+        .notification-item { padding: 15px; border-left: 4px solid var(--primary); margin: 10px 0; background: #f8f9fa; border-radius: 5px; }
+        .notification-type { display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 12px; margin-right: 10px; }
+        .reminder { border-left-color: #4cc9f0; }
+        .alert { border-left-color: #f72585; }
+        .prompt { border-left-color: #7209b7; }
+        .deadline { border-left-color: #ff9e00; }
+        .notification-time { color: #666; font-size: 12px; float: right; }
+        .channel-badge { display: inline-block; padding: 2px 8px; background: #e9ecef; border-radius: 10px; font-size: 11px; margin-left: 5px; }
+        .email { background: #ff6b6b; color: white; }
+        .whatsapp { background: #25d366; color: white; }
+        .push { background: #4361ee; color: white; }
+        .back-btn { margin-bottom: 20px; }
+        .empty-state { text-align: center; padding: 40px; color: #666; }
+        .notification-actions { margin-top: 10px; }
+        .action-btn { padding: 5px 10px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 5px; }
+        .action-btn:hover { background: #f8f9fa; }
+        .settings-group { margin-bottom: 20px; }
+        .settings-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
+        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 30px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 30px; }
+        .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(30px); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="back-btn">
+            <a href="/dashboard" class="nav-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="header">
+            <h1>🔔 Notifications</h1>
+            <div>
+                <a href="/dashboard" class="nav-btn">Dashboard</a>
+                <button class="nav-btn" onclick="testNotification()">Test Notification</button>
+            </div>
+        </div>
+
+        <!-- Notification Settings -->
+        <div class="section">
+            <h2>⚙️ Notification Settings</h2>
+            <form id="notificationSettings">
+                <div class="settings-group">
+                    <label>Notification Channels:</label>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px;">
+                        <label>
+                            <input type="checkbox" name="channel" value="email" checked> 
+                            📧 Email
+                        </label>
+                        <label>
+                            <input type="checkbox" name="channel" value="whatsapp"> 
+                            💬 WhatsApp
+                        </label>
+                        <label>
+                            <input type="checkbox" name="channel" value="push" checked> 
+                            📱 Push Notifications
+                        </label>
+                        <label>
+                            <input type="checkbox" name="channel" value="sms"> 
+                            📞 SMS
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <label>Notification Types:</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+                        <label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" name="type_reminder" checked>
+                                <span class="slider"></span>
+                            </div>
+                            ⏰ Session Reminders
+                        </label>
+                        
+                        <label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" name="type_deadline" checked>
+                                <span class="slider"></span>
+                            </div>
+                            📅 Deadline Alerts
+                        </label>
+                        
+                        <label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" name="type_revision" checked>
+                                <span class="slider"></span>
+                            </div>
+                            📚 Revision Prompts
+                        </label>
+                        
+                        <label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" name="type_progress">
+                                <span class="slider"></span>
+                            </div>
+                            📊 Progress Reports
+                        </label>
+                        
+                        <label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" name="type_mood">
+                                <span class="slider"></span>
+                            </div>
+                            😊 Mood Check-ins
+                        </label>
+                        
+                        <label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" name="type_break" checked>
+                                <span class="slider"></span>
+                            </div>
+                            ☕ Break Reminders
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <label>Timing Preferences:</label>
+                    <div style="display: flex; gap: 15px; margin-top: 10px;">
+                        <div>
+                            <label>Before Session:</label>
+                            <select name="reminder_before">
+                                <option value="15">15 minutes</option>
+                                <option value="30" selected>30 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="120">2 hours</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label>Daily Digest Time:</label>
+                            <input type="time" name="daily_digest" value="08:00">
+                        </div>
+                        
+                        <div>
+                            <label>Quiet Hours:</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="time" name="quiet_start" value="22:00">
+                                <span>to</span>
+                                <input type="time" name="quiet_end" value="07:00">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" class="nav-btn" onclick="saveNotificationSettings()">💾 Save Settings</button>
+            </form>
+        </div>
+
+        <!-- Upcoming Notifications -->
+        <div class="section">
+            <h2>📅 Upcoming Notifications</h2>
+            
+            {% if upcoming %}
+                {% for notification in upcoming %}
+                <div class="notification-item {{ notification.notification_type }}">
+                    <span class="notification-type {{ notification.notification_type }}">
+                        {% if notification.notification_type == 'reminder' %}⏰
+                        {% elif notification.notification_type == 'alert' %}⚠️
+                        {% elif notification.notification_type == 'prompt' ?>💡
+                        {% else %}📅{% endif %}
+                        {{ notification.notification_type|title }}
+                    </span>
+                    
+                    <strong>{{ notification.title }}</strong>
+                    <span class="notification-time">
+                        {{ notification.scheduled_time.split(' ')[0] }} at 
+                        {{ notification.scheduled_time.split(' ')[1][:5] }}
+                    </span>
+                    
+                    <p>{{ notification.message }}</p>
+                    
+                    {% if notification.channel %}
+                    <span class="channel-badge {{ notification.channel }}">
+                        {% if notification.channel == 'email' %}📧
+                        {% elif notification.channel == 'whatsapp' %}💬
+                        {% else %}📱{% endif %}
+                        {{ notification.channel|title }}
+                    </span>
+                    {% endif %}
+                    
+                    <div class="notification-actions">
+                        <button class="action-btn" onclick="snoozeNotification('{{ notification.notification_id }}')">⏸️ Snooze</button>
+                        <button class="action-btn" onclick="dismissNotification('{{ notification.notification_id }}')">✅ Mark as Read</button>
+                        <button class="action-btn" onclick="editNotification('{{ notification.notification_id }}')">✏️ Edit</button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <div style="font-size: 48px;">🔔</div>
+                <h3>No Upcoming Notifications</h3>
+                <p>All caught up! Your next notification will appear here when scheduled.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Past Notifications -->
+        <div class="section">
+            <h2>📜 Notification History</h2>
+            
+            {% if past %}
+                {% for notification in past %}
+                <div class="notification-item" style="opacity: 0.7;">
+                    <span class="notification-type {{ notification.notification_type }}">
+                        {% if notification.notification_type == 'reminder' %}⏰
+                        {% elif notification.notification_type == 'alert' %}⚠️
+                        {% elif notification.notification_type == 'prompt' %}💡
+                        {% else %}📅{% endif %}
+                        {{ notification.notification_type|title }}
+                    </span>
+                    
+                    <strong>{{ notification.title }}</strong>
+                    <span class="notification-time">
+                        Sent: {{ notification.sent_time.split(' ')[0] }} at 
+                        {{ notification.sent_time.split(' ')[1][:5] }}
+                    </span>
+                    
+                    <p>{{ notification.message }}</p>
+                    
+                    {% if notification.channel %}
+                    <span class="channel-badge {{ notification.channel }}">
+                        {% if notification.channel == 'email' %}📧
+                        {% elif notification.channel == 'whatsapp' %}💬
+                        {% else %}📱{% endif %}
+                        {{ notification.channel|title }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="action-btn" onclick="loadMoreNotifications()">📥 Load More</button>
+                    <button class="action-btn" onclick="clearNotificationHistory()">🗑️ Clear History</button>
+                </div>
+            {% else %}
+            <div class="empty-state">
+                <div style="font-size: 48px;">📜</div>
+                <h3>No Notification History</h3>
+                <p>Your past notifications will appear here.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Notification Templates -->
+        <div class="section">
+            <h2>📋 Notification Templates</h2>
+            <p>Create custom notification templates for recurring events:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
+                <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
+                    <strong>Study Session Reminder</strong>
+                    <p>"Time for your {subject} study session on {topic}"</p>
+                    <button class="action-btn" onclick="useTemplate('study_reminder')">Use Template</button>
+                </div>
+                
+                <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
+                    <strong>Exam Deadline Alert</strong>
+                    <p>"{subject} exam in {days} days. Time to revise!"</p>
+                    <button class="action-btn" onclick="useTemplate('exam_alert')">Use Template</button>
+                </div>
+                
+                <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
+                    <strong>Break Reminder</strong>
+                    <p>"Take a 5-minute break! You've been studying for {hours} hours."</p>
+                    <button class="action-btn" onclick="useTemplate('break_reminder')">Use Template</button>
+                </div>
+                
+                <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
+                    <strong>Weekly Progress Report</strong>
+                    <p>"Weekly report: Completed {completed} of {total} topics ({progress}%)"</p>
+                    <button class="action-btn" onclick="useTemplate('progress_report')">Use Template</button>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button class="nav-btn" onclick="showCustomTemplateForm()">➕ Create Custom Template</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function saveNotificationSettings() {
+            const form = document.getElementById('notificationSettings');
+            const formData = new FormData(form);
+            
+            alert('Notification settings saved successfully!');
+            // In real app: Send to server via AJAX
+            
+            // Show confirmation
+            showToast('Settings saved!', 'success');
+        }
+        
+        function testNotification() {
+            if (Notification.permission === 'granted') {
+                new Notification('AI Study Planner Test', {
+                    body: 'This is a test notification from your study planner!',
+                    icon: '/static/favicon.ico'
+                });
+            } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        new Notification('AI Study Planner Test', {
+                            body: 'This is a test notification from your study planner!',
+                            icon: '/static/favicon.ico'
+                        });
+                    }
+                });
+            }
+            
+            showToast('Test notification sent!', 'success');
+        }
+        
+        function snoozeNotification(id) {
+            const time = prompt('Snooze for how many minutes?', '15');
+            if (time && !isNaN(time)) {
+                alert(`Notification ${id} snoozed for ${time} minutes`);
+                // In real app: Send to server
+                showToast(`Snoozed for ${time} minutes`, 'info');
+            }
+        }
+        
+        function dismissNotification(id) {
+            if (confirm('Mark this notification as read?')) {
+                alert(`Notification ${id} dismissed`);
+                // In real app: Send to server
+                showToast('Notification marked as read', 'success');
+                location.reload();
+            }
+        }
+        
+        function editNotification(id) {
+            alert(`Editing notification ${id} - This would open an edit form in a real app`);
+        }
+        
+        function loadMoreNotifications() {
+            showToast('Loading more notifications...', 'info');
+            // In real app: Load via AJAX
+        }
+        
+        function clearNotificationHistory() {
+            if (confirm('Clear all notification history? This cannot be undone.')) {
+                alert('Notification history cleared');
+                // In real app: Send to server
+                showToast('History cleared', 'warning');
+                location.reload();
+            }
+        }
+        
+        function useTemplate(templateType) {
+            const templates = {
+                'study_reminder': {
+                    title: 'Study Session Reminder',
+                    message: 'Time for your {subject} study session on {topic}'
+                },
+                'exam_alert': {
+                    title: 'Exam Deadline Alert',
+                    message: '{subject} exam in {days} days. Time to revise!'
+                },
+                'break_reminder': {
+                    title: 'Break Time!',
+                    message: 'Take a 5-minute break! You\'ve been studying for {hours} hours.'
+                },
+                'progress_report': {
+                    title: 'Weekly Progress Report',
+                    message: 'Weekly report: Completed {completed} of {total} topics ({progress}%)'
+                }
+            };
+            
+            const template = templates[templateType];
+            const title = prompt('Notification Title:', template.title);
+            const message = prompt('Notification Message:', template.message);
+            
+            if (title && message) {
+                alert('Custom notification created! Set schedule in next step.');
+                // In real app: Open scheduling form
+            }
+        }
+        
+        function showCustomTemplateForm() {
+            const form = `
+                <div style="margin-top: 20px; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+                    <h3>Create Custom Template</h3>
+                    <input type="text" placeholder="Template Name" style="width: 100%; margin-bottom: 10px; padding: 8px;">
+                    <textarea placeholder="Template Message (use {variables})" rows="3" style="width: 100%; margin-bottom: 10px; padding: 8px;"></textarea>
+                    <button onclick="saveCustomTemplate()" class="nav-btn">Save Template</button>
+                </div>
+            `;
+            
+            document.querySelector('.section:last-child').insertAdjacentHTML('beforeend', form);
+        }
+        
+        function saveCustomTemplate() {
+            alert('Custom template saved!');
+            // In real app: Save to server
+        }
+        
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                background: ${type === 'success' ? '#4CAF50' : type === 'warning' ? '#ff9800' : '#2196F3'};
+                color: white;
+                border-radius: 5px;
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        // Request notification permission on load
+        document.addEventListener('DOMContentLoaded', () => {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        });
+    </script>
+</body>
+</html>

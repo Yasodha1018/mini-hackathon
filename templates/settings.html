@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - AI Study Planner</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .nav-btn { padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .nav-btn:hover { background: var(--secondary); }
+        .section { background: white; padding: 25px; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: var(--primary); margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        .btn { padding: 12px 25px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: var(--secondary); }
+        .back-btn { margin-bottom: 20px; }
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 30px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 30px; }
+        .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(30px); }
+        .color-preview { width: 30px; height: 30px; border-radius: 50%; display: inline-block; margin: 0 10px; border: 2px solid #ddd; }
+        .danger-zone { border: 2px solid #ff6b6b; background: #fff5f5; }
+        .theme-options { display: flex; gap: 15px; margin-top: 10px; }
+        .theme-option { padding: 15px; border: 2px solid #ddd; border-radius: 5px; cursor: pointer; text-align: center; }
+        .theme-option.selected { border-color: var(--primary); }
+        .theme-light { background: white; color: #333; }
+        .theme-dark { background: #1a1a1a; color: white; }
+        .theme-blue { background: #e3f2fd; color: #1565c0; }
+        .theme-green { background: #e8f5e9; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="back-btn">
+            <a href="/dashboard" class="nav-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="header">
+            <h1>⚙️ Settings</h1>
+            <div>
+                <a href="/dashboard" class="nav-btn">Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Profile Settings -->
+        <div class="section">
+            <h2>👤 Profile Settings</h2>
+            <form>
+                <div class="form-group">
+                    <label for="full_name">Full Name:</label>
+                    <input type="text" id="full_name" name="full_name" value="{{ session.username }}" disabled>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address:</label>
+                    <input type="email" id="email" name="email" value="{{ session.email }}" disabled>
+                </div>
+                
+                <div class="form-group">
+                    <label for="timezone">Timezone:</label>
+                    <select id="timezone" name="timezone">
+                        <option value="UTC" {% if profile and profile.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                        <option value="IST" {% if profile and profile.timezone == 'IST' %}selected{% endif %}>IST (India)</option>
+                        <option value="EST" {% if profile and profile.timezone == 'EST' %}selected{% endif %}>EST (New York)</option>
+                        <option value="PST" {% if profile and profile.timezone == 'PST' %}selected{% endif %}>PST (Los Angeles)</option>
+                        <option value="GMT" {% if profile and profile.timezone == 'GMT' %}selected{% endif %}>GMT (London)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="language">Preferred Language:</label>
+                    <select id="language" name="language">
+                        <option value="English" {% if profile and profile.preferred_language == 'English' %}selected{% endif %}>English</option>
+                        <option value="Hindi" {% if profile and profile.preferred_language == 'Hindi' %}selected{% endif %}>Hindi</option>
+                        <option value="Spanish" {% if profile and profile.preferred_language == 'Spanish' %}selected{% endif %}>Spanish</option>
+                        <option value="French" {% if profile and profile.preferred_language == 'French' %}selected{% endif %}>French</option>
+                        <option value="German" {% if profile and profile.preferred_language == 'German' %}selected{% endif %}>German</option>
+                    </select>
+                </div>
+                
+                <button type="button" class="btn" onclick="updateProfile()">💾 Update Profile</button>
+            </form>
+        </div>
+
+        <!-- Appearance Settings -->
+        <div class="section">
+            <h2>🎨 Appearance & Accessibility</h2>
+            <form method="POST" action="/update_settings">
+                <div class="form-group">
+                    <label>Theme:</label>
+                    <div class="theme-options">
+                        <div class="theme-option theme-light {% if profile and profile.theme_preference == 'light' %}selected{% endif %}" onclick="selectTheme('light')">
+                            ☀️ Light
+                        </div>
+                        <div class="theme-option theme-dark {% if profile and profile.theme_preference == 'dark' %}selected{% endif %}" onclick="selectTheme('dark')">
+                            🌙 Dark
+                        </div>
+                        <div class="theme-option theme-blue {% if profile and profile.theme_preference == 'blue' %}selected{% endif %}" onclick="selectTheme('blue')">
+                            🔵 Blue
+                        </div>
+                        <div class="theme-option theme-green {% if profile and profile.theme_preference == 'green' %}selected{% endif %}" onclick="selectTheme('green')">
+                            🟢 Green
+                        </div>
+                    </div>
+                    <input type="hidden" id="theme" name="theme" value="{{ profile.theme_preference if profile else 'light' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="font_size">Font Size:</label>
+                    <input type="range" id="font_size" name="font_size" min="12" max="24" value="{{ profile.font_size if profile else 14 }}" oninput="updateFontPreview(this.value)">
+                    <span id="fontPreview">{{ profile.font_size if profile else 14 }}px</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="color_mode">Color Mode:</label>
+                    <select id="color_mode" name="color_mode">
+                        <option value="default" {% if profile and profile.color_mode == 'default' %}selected{% endif %}>Default</option>
+                        <option value="protanopia" {% if profile and profile.color_mode == 'protanopia' %}selected{% endif %}>Protanopia (Red-blind)</option>
+                        <option value="deuteranopia" {% if profile and profile.color_mode == 'deuteranopia' %}selected{% endif %}>Deuteranopia (Green-blind)</option>
+                        <option value="tritanopia" {% if profile and profile.color_mode == 'tritanopia' %}selected{% endif %}>Tritanopia (Blue-blind)</option>
+                        <option value="monochrome" {% if profile and profile.color_mode == 'monochrome' %}selected{% endif %}>Monochrome</option>
+                        <option value="high-contrast" {% if profile and profile.color_mode == 'high-contrast' %}selected{% endif %}>High Contrast</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Accessibility Features:</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+                        <label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" name="reduce_motion" {% if profile and profile.reduce_motion == 1 %}checked{% endif %}>
+                                <span class="slider"></span>
+                            </div>
+                            🚫 Reduce Motion
+                        </label>
+                        
+                        <label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" name="screen_reader" {% if profile and profile.screen_reader == 1 %}checked{% endif %}>
+                                <span class="slider"></span>
+                            </div>
+                            🔊 Screen Reader Support
+                        </label>
+                        
+                        <label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" name="keyboard_nav" {% if profile and profile.keyboard_nav == 1 %}checked{% endif %}>
+                                <span class="slider"></span>
+                            </div>
+                            ⌨️ Keyboard Navigation
+                        </label>
+                        
+                        <label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" name="large_buttons" {% if profile and profile.large_buttons == 1 %}checked{% endif %}>
+                                <span class="slider"></span>
+                            </div>
+                            🔘 Large Buttons
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn">💾 Save Appearance Settings</button>
+            </form>
+        </div>
+
+        <!-- Study Preferences -->
+        <div class="section">
+            <h2>📚 Study Preferences</h2>
+            <form>
+                <div class="form-group">
+                    <label>Default Study Methods:</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px;">
+                        <label>
+                            <input type="checkbox" name="method_reading" checked> 
+                            📖 Reading
+                        </label>
+                        <label>
+                            <input type="checkbox" name="method_videos" checked> 
+                            📺 Videos
+                        </label>
+                        <label>
+                            <input type="checkbox" name="method_problems" checked> 
+                            📝 Problems
+                        </label>
+                        <label>
+                            <input type="checkbox" name="method_flashcards"> 
+                            🗂️ Flashcards
+                        </label>
+                        <label>
+                            <input type="checkbox" name="method_group"> 
+                            👥 Group Study
+                        </label>
+                        <label>
+                            <input type="checkbox" name="method_teaching"> 
+                            🎓 Teaching Others
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="session_length">Preferred Session Length:</label>
+                    <select id="session_length" name="session_length">
+                        <option value="30">30 minutes</option>
+                        <option value="45">45 minutes</option>
+                        <option value="60" selected>60 minutes</option>
+                        <option value="90">90 minutes</option>
+                        <option value="120">120 minutes</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="break_frequency">Break Frequency:</label>
+                    <select id="break_frequency" name="break_frequency">
+                        <option value="25_5">25 min work / 5 min break (Pomodoro)</option>
+                        <option value="50_10">50 min work / 10 min break</option>
+                        <option value="90_15">90 min work / 15 min break</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>AI Assistance Level:</label>
+                    <div style="display: flex; gap: 15px; margin-top: 10px;">
+                        <label>
+                            <input type="radio" name="ai_level" value="minimal"> 
+                            Minimal (Basic scheduling)
+                        </label>
+                        <label>
+                            <input type="radio" name="ai_level" value="balanced" checked> 
+                            Balanced (Recommended)
+                        </label>
+                        <label>
+                            <input type="radio" name="ai_level" value="maximal"> 
+                            Maximal (Full AI control)
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="button" class="btn" onclick="saveStudyPreferences()">💾 Save Study Preferences</button>
+            </form>
+        </div>
+
+        <!-- Privacy & Data -->
+        <div class="section">
+            <h2>🔒 Privacy & Data</h2>
+            <div class="settings-grid">
+                <div>
+                    <h3>Data Collection</h3>
+                    <label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" name="collect_study_data" checked>
+                            <span class="slider"></span>
+                        </div>
+                        Collect study data for AI improvement
+                    </label>
+                    <p><small>Anonymous data helps improve AI algorithms</small></p>
+                </div>
+                
+                <div>
+                    <h3>Data Export</h3>
+                    <button class="nav-btn" onclick="exportUserData()">📤 Export My Data</button>
+                    <p><small>Download all your study data</small></p>
+                </div>
+                
+                <div>
+                    <h3>Account Deletion</h3>
+                    <button class="nav-btn" onclick="requestDataDeletion()">🗑️ Request Data Deletion</button>
+                    <p><small>Permanently delete account and all data</small></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="section danger-zone">
+            <h2 style="color: #ff6b6b;">⚠️ Danger Zone</h2>
+            
+            <div class="form-group">
+                <label for="current_password">Current Password:</label>
+                <input type="password" id="current_password" name="current_password" placeholder="Enter current password">
+            </div>
+            
+            <div class="form-group">
+                <label for="new_password">New Password:</label>
+                <input type="password" id="new_password" name="new_password" placeholder="Enter new password">
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm_password">Confirm New Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password">
+            </div>
+            
+            <button type="button" class="btn" style="background: #ff6b6b;" onclick="changePassword()">
+                🔑 Change Password
+            </button>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ff6b6b;">
+                <h3 style="color: #ff6b6b;">Delete Account</h3>
+                <p>This action cannot be undone. All your data will be permanently deleted.</p>
+                <button type="button" class="btn" style="background: #dc3545;" onclick="deleteAccount()">
+                    🗑️ Delete My Account
+                </button>
+            </div>
+        </div>
+
+        <!-- About & Help -->
+        <div class="section">
+            <h2>ℹ️ About & Help</h2>
+            <div class="settings-grid">
+                <div>
+                    <h3>Version Information</h3>
+                    <p><strong>AI Study Planner</strong> v1.0.0</p>
+                    <p>© 2024 All rights reserved</p>
+                    <p><small>Built with Flask & SQLite</small></p>
+                </div>
+                
+                <div>
+                    <h3>Support</h3>
+                    <button class="nav-btn" onclick="openHelp()">📚 Help & Documentation</button>
+                    <button class="nav-btn" onclick="contactSupport()">📧 Contact Support</button>
+                </div>
+                
+                <div>
+                    <h3>Feedback</h3>
+                    <button class="nav-btn" onclick="giveFeedback()">💡 Send Feedback</button>
+                    <button class="nav-btn" onclick="rateApp()">⭐ Rate This App</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function selectTheme(theme) {
+            document.getElementById('theme').value = theme;
+            
+            // Update UI preview
+            document.querySelectorAll('.theme-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.target.closest('.theme-option').classList.add('selected');
+            
+            // Apply theme preview
+            document.body.className = '';
+            document.body.classList.add(`theme-${theme}`);
+        }
+        
+        function updateFontPreview(size) {
+            document.getElementById('fontPreview').textContent = size + 'px';
+            document.body.style.fontSize = size + 'px';
+        }
+        
+        function updateProfile() {
+            alert('Profile updated successfully!');
+            // In real app: Send to server via AJAX
+        }
+        
+        function saveStudyPreferences() {
+            alert('Study preferences saved!');
+            // In real app: Send to server via AJAX
+        }
+        
+        function changePassword() {
+            const current = document.getElementById('current_password').value;
+            const newPass = document.getElementById('new_password').value;
+            const confirm = document.getElementById('confirm_password').value;
+            
+            if (!current || !newPass || !confirm) {
+                alert('Please fill in all password fields');
+                return;
+            }
+            
+            if (newPass !== confirm) {
+                alert('New passwords do not match');
+                return;
+            }
+            
+            if (newPass.length < 8) {
+                alert('New password must be at least 8 characters long');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to change your password?')) {
+                alert('Password changed successfully!');
+                // In real app: Send to server via AJAX
+                document.getElementById('current_password').value = '';
+                document.getElementById('new_password').value = '';
+                document.getElementById('confirm_password').value = '';
+            }
+        }
+        
+        function deleteAccount() {
+            if (confirm('⚠️ WARNING: This will permanently delete your account and all data. This action cannot be undone.\n\nAre you absolutely sure?')) {
+                const confirmText = prompt('Type "DELETE MY ACCOUNT" to confirm:');
+                if (confirmText === 'DELETE MY ACCOUNT') {
+                    alert('Account deletion requested. You will be logged out.');
+                    // In real app: Send delete request to server
+                    setTimeout(() => window.location.href = '/logout', 2000);
+                } else {
+                    alert('Account deletion cancelled.');
+                }
+            }
+        }
+        
+        function exportUserData() {
+            alert('Preparing your data export... This may take a moment.');
+            // In real app: Generate and download data file
+            setTimeout(() => {
+                alert('Data export complete! Check your downloads for study_planner_data.json');
+            }, 2000);
+        }
+        
+        function requestDataDeletion() {
+            if (confirm('Request data deletion? This will remove all your personal data but keep your account.')) {
+                alert('Data deletion request submitted. You will receive a confirmation email.');
+            }
+        }
+        
+        function openHelp() {
+            window.open('/help', '_blank');
+        }
+        
+        function contactSupport() {
+            window.location.href = 'mailto:support@aistudyplanner.com';
+        }
+        
+        function giveFeedback() {
+            const feedback = prompt('Please share your feedback:');
+            if (feedback) {
+                alert('Thank you for your feedback!');
+                // In real app: Send to server
+            }
+        }
+        
+        function rateApp() {
+            alert('Redirecting to app store...');
+            // In real app: Open app store link
+        }
+        
+        // Initialize theme
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentTheme = document.getElementById('theme').value;
+            selectTheme(currentTheme);
+            updateFontPreview(document.getElementById('font_size').value);
+        });
+    </script>
+</body>
+</html>

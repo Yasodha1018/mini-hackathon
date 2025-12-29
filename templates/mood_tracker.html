@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood Tracker - AI Study Planner</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --mood-excellent: #4ade80;
+            --mood-good: #60a5fa;
+            --mood-okay: #fbbf24;
+            --mood-poor: #f87171;
+            --mood-bad: #dc2626;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        .nav-btn {
+            padding: 10px 15px;
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .nav-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .nav-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+        h1 {
+            color: var(--primary);
+            margin: 0;
+        }
+        h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .mood-tracker-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        @media (max-width: 768px) {
+            .mood-tracker-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        .mood-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .mood-scale {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .mood-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .mood-option:hover {
+            transform: translateY(-5px);
+        }
+        .mood-emoji {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+        .mood-1 { background: var(--mood-bad); }
+        .mood-2 { background: var(--mood-poor); }
+        .mood-3 { background: var(--mood-okay); }
+        .mood-4 { background: var(--mood-good); }
+        .mood-5 { background: var(--mood-excellent); }
+        .mood-option.selected {
+            box-shadow: 0 0 0 3px white, 0 0 0 6px var(--primary);
+        }
+        .slider-container {
+            margin: 20px 0;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .slider-value {
+            font-weight: bold;
+            color: var(--primary);
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 100px;
+        }
+        .btn {
+            padding: 15px 30px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        .ai-suggestions {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        .suggestion-item {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .suggestion-icon {
+            font-size: 24px;
+        }
+        .mood-history {
+            overflow-x: auto;
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .history-table th,
+        .history-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .history-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        .history-table tr:hover {
+            background: #f8f9fa;
+        }
+        .mood-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .mood-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .energy-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .energy-fill {
+            height: 100%;
+            background: var(--success);
+        }
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .mood-chart {
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        .chart-bar {
+            width: 40px;
+            background: var(--primary);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+        }
+        .chart-bar:hover::after {
+            content: attr(data-value);
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: none;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .mood-description {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>😊 Mood Tracker</h1>
+                <p>Track your mood, energy, and stress levels for better study planning</p>
+            </div>
+            <div>
+                <a href="/dashboard" class="nav-btn">← Back to Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-menu">
+            <a href="/mood_tracker" class="nav-btn active">😊 Today's Mood</a>
+            <a href="/mood_tracker#history" class="nav-btn">📊 Mood History</a>
+            <a href="/mood_tracker#insights" class="nav-btn">📈 Insights</a>
+            <a href="/ai_schedule_generator" class="nav-btn">🤖 AI Schedule</a>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div>Average Mood</div>
+                <div class="stat-value" id="avgMood">{% if mood_history %}3.8{% else %}N/A{% endif %}</div>
+                <div>Last 14 days</div>
+            </div>
+            <div class="stat-card">
+                <div>Energy Level</div>
+                <div class="stat-value" id="avgEnergy">{% if mood_history %}3.5{% else %}N/A{% endif %}</div>
+                <div>Today's average</div>
+            </div>
+            <div class="stat-card">
+                <div>Stress Level</div>
+                <div class="stat-value" id="avgStress">{% if mood_history %}2.8{% else %}N/A{% endif %}</div>
+                <div>Lower is better</div>
+            </div>
+            <div class="stat-card">
+                <div>AI Adaptations</div>
+                <div class="stat-value" id="adaptationCount">{% if mood_history %}12{% else %}0{% endif %}</div>
+                <div>Schedule adjustments</div>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="alert alert-success" id="successAlert">
+            ✅ Mood logged successfully! AI has adjusted your schedule.
+        </div>
+        <div class="alert alert-error" id="errorAlert">
+            ❌ Error logging mood. Please try again.
+        </div>
+
+        <!-- Main Content -->
+        <div class="mood-tracker-container">
+            <!-- Mood Form -->
+            <div class="card">
+                <h2>How are you feeling today?</h2>
+                <p>Your mood helps AI optimize your study schedule</p>
+                
+                <div class="mood-form">
+                    <!-- Mood -->
+                    <div>
+                        <div class="slider-label">
+                            <span>Mood</span>
+                            <span class="slider-value" id="moodValue">3</span>
+                        </div>
+                        <div class="mood-scale">
+                            <div class="mood-option mood-1" data-value="1" onclick="selectMood(1)">
+                                <span class="mood-emoji">😞</span>
+                                <span>Poor</span>
+                            </div>
+                            <div class="mood-option mood-2" data-value="2" onclick="selectMood(2)">
+                                <span class="mood-emoji">😕</span>
+                                <span>Okay</span>
+                            </div>
+                            <div class="mood-option mood-3 selected" data-value="3" onclick="selectMood(3)">
+                                <span class="mood-emoji">😐</span>
+                                <span>Neutral</span>
+                            </div>
+                            <div class="mood-option mood-4" data-value="4" onclick="selectMood(4)">
+                                <span class="mood-emoji">🙂</span>
+                                <span>Good</span>
+                            </div>
+                            <div class="mood-option mood-5" data-value="5" onclick="selectMood(5)">
+                                <span class="mood-emoji">😊</span>
+                                <span>Great</span>
+                            </div>
+                        </div>
+                        <input type="range" min="1" max="5" value="3" class="slider" id="moodSlider" oninput="updateMood(this.value)">
+                        <div class="mood-description">How you feel overall today</div>
+                    </div>
+
+                    <!-- Energy -->
+                    <div>
+                        <div class="slider-label">
+                            <span>Energy Level</span>
+                            <span class="slider-value" id="energyValue">3</span>
+                        </div>
+                        <input type="range" min="1" max="5" value="3" class="slider" id="energySlider" oninput="updateEnergy(this.value)">
+                        <div class="mood-description">Your physical and mental energy level</div>
+                    </div>
+
+                    <!-- Stress -->
+                    <div>
+                        <div class="slider-label">
+                            <span>Stress Level</span>
+                            <span class="slider-value" id="stressValue">3</span>
+                        </div>
+                        <input type="range" min="1" max="5" value="3" class="slider" id="stressSlider" oninput="updateStress(this.value)">
+                        <div class="mood-description">How stressed or pressured you feel</div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div>
+                        <label for="moodNotes">Notes (optional):</label>
+                        <textarea id="moodNotes" placeholder="What's affecting your mood today? Any specific challenges or wins?"></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button class="btn" onclick="submitMood()">
+                        📝 Log My Mood & Get AI Suggestions
+                    </button>
+                </div>
+            </div>
+
+            <!-- Today's Mood & AI Suggestions -->
+            <div class="card">
+                <h2>Today's Mood Summary</h2>
+                
+                {% if today_mood %}
+                <div style="padding: 20px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px;">
+                    <h3>Already logged today at {{ today_mood.tracking_date }}</h3>
+                    <div style="display: flex; gap: 20px; margin: 15px 0;">
+                        <div>
+                            <div style="font-size: 2em;">{{ today_mood.mood_score }}/5</div>
+                            <div>Mood</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2em;">{{ today_mood.energy_level }}/5</div>
+                            <div>Energy</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2em;">{{ today_mood.stress_level }}/5</div>
+                            <div>Stress</div>
+                        </div>
+                    </div>
+                    {% if today_mood.notes %}
+                    <p><strong>Notes:</strong> {{ today_mood.notes }}</p>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <div style="font-size: 4em;">😊</div>
+                    <h3>No mood logged today</h3>
+                    <p>Log your mood to get personalized AI recommendations</p>
+                </div>
+                {% endif %}
+
+                <!-- AI Suggestions (initially hidden) -->
+                <div class="ai-suggestions" id="aiSuggestions" style="display: none;">
+                    <h3>🤖 AI Recommendations</h3>
+                    <div id="suggestionsList">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div class="loading" id="loadingSpinner">
+                    <div class="loading-spinner"></div>
+                    <p>AI is analyzing your mood and optimizing your schedule...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mood History -->
+        <div class="card" id="history">
+            <h2>📊 Mood History (Last 14 days)</h2>
+            
+            {% if mood_history %}
+            <div class="mood-history">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Mood</th>
+                            <th>Energy</th>
+                            <th>Stress</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mood in mood_history %}
+                        <tr>
+                            <td>{{ mood.tracking_date }}</td>
+                            <td>
+                                <div class="mood-cell">
+                                    <div class="mood-dot" style="background: 
+                                        {% if mood.mood_score == 5 %}var(--mood-excellent)
+                                        {% elif mood.mood_score == 4 %}var(--mood-good)
+                                        {% elif mood.mood_score == 3 %}var(--mood-okay)
+                                        {% elif mood.mood_score == 2 %}var(--mood-poor)
+                                        {% else %}var(--mood-bad)
+                                        {% endif %}">
+                                    </div>
+                                    {{ mood.mood_score }}/5
+                                </div>
+                            </td>
+                            <td>
+                                <div class="energy-bar">
+                                    <div class="energy-fill" style="width: {{ (mood.energy_level / 5) * 100 }}%"></div>
+                                </div>
+                                {{ mood.energy_level }}/5
+                            </td>
+                            <td>{{ mood.stress_level }}/5</td>
+                            <td>{{ mood.notes or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mood Chart -->
+            <div class="mood-chart">
+                {% for mood in mood_history[:7] %}
+                <div class="chart-bar" 
+                     data-value="{{ mood.mood_score }}"
+                     style="height: {{ (mood.mood_score / 5) * 100 }}%;
+                            background: {% if mood.mood_score >= 4 %}var(--mood-good)
+                                      {% elif mood.mood_score >= 3 %}var(--mood-okay)
+                                      {% else %}var(--mood-poor)
+                                      {% endif %};">
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-data">
+                <div style="font-size: 4em;">📈</div>
+                <h3>No mood history yet</h3>
+                <p>Start tracking your mood to see patterns and insights</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Mood Insights -->
+        <div class="card" id="insights">
+            <h2>📈 Mood Insights & Patterns</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div style="padding: 20px; background: #e8f5e8; border-radius: 10px;">
+                    <h3>📅 Best Study Days</h3>
+                    <p>You study best when your energy is above 3 and stress is below 3</p>
+                    <div style="margin-top: 10px;">
+                        <span style="background: var(--mood-good); color: white; padding: 5px 10px; border-radius: 5px;">
+                            High Productivity Days: 65%
+                        </span>
+                    </div>
+                </div>
+                
+                <div style="padding: 20px; background: #fff3cd; border-radius: 10px;">
+                    <h3>⚠️ Burnout Warning</h3>
+                    <p>When stress is consistently above 4, consider taking breaks</p>
+                    <div style="margin-top: 10px;">
+                        <span style="background: var(--warning); color: white; padding: 5px 10px; border-radius: 5px;">
+                            Current Risk: Low
+                        </span>
+                    </div>
+                </div>
+                
+                <div style="padding: 20px; background: #e8f4fd; border-radius: 10px;">
+                    <h3>🎯 Optimal Scheduling</h3>
+                    <p>AI will schedule difficult topics on high-energy days</p>
+                    <div style="margin-top: 10px;">
+                        <span style="background: var(--primary); color: white; padding: 5px 10px; border-radius: 5px;">
+                            Next Challenge Day: Tomorrow
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Well-being Tips -->
+        <div class="card">
+            <h2>💡 Well-being Tips</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                <div style="padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                    <div style="font-size: 24px;">🧘</div>
+                    <h4>Mindfulness</h4>
+                    <p>5-minute meditation breaks between study sessions</p>
+                </div>
+                <div style="padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                    <div style="font-size: 24px;">🏃</div>
+                    <h4>Movement</h4>
+                    <p>Short walks every 2 hours improve focus</p>
+                </div>
+                <div style="padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                    <div style="font-size: 24px;">💧</div>
+                    <h4>Hydration</h4>
+                    <p>Drink water regularly for better concentration</p>
+                </div>
+                <div style="padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                    <div style="font-size: 24px;">🎵</div>
+                    <h4>Music</h4>
+                    <p>Instrumental music can enhance study sessions</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Mood tracking variables
+        let currentMood = 3;
+        let currentEnergy = 3;
+        let currentStress = 3;
+
+        // Initialize sliders and mood options
+        function initializeMoodTracker() {
+            // Set today's mood if exists
+            {% if today_mood %}
+            currentMood = {{ today_mood.mood_score }};
+            currentEnergy = {{ today_mood.energy_level }};
+            currentStress = {{ today_mood.stress_level }};
+            
+            updateMood(currentMood);
+            updateEnergy(currentEnergy);
+            updateStress(currentStress);
+            
+            // Pre-select mood option
+            selectMood(currentMood);
+            {% endif %}
+        }
+
+        // Update mood value
+        function updateMood(value) {
+            currentMood = parseInt(value);
+            document.getElementById('moodValue').textContent = value;
+            selectMood(value);
+        }
+
+        // Update energy value
+        function updateEnergy(value) {
+            currentEnergy = parseInt(value);
+            document.getElementById('energyValue').textContent = value;
+        }
+
+        // Update stress value
+        function updateStress(value) {
+            currentStress = parseInt(value);
+            document.getElementById('stressValue').textContent = value;
+        }
+
+        // Select mood option visually
+        function selectMood(value) {
+            // Remove selected class from all options
+            document.querySelectorAll('.mood-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Add selected class to chosen option
+            const selectedOption = document.querySelector(`.mood-option[data-value="${value}"]`);
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+            }
+            
+            // Update slider
+            document.getElementById('moodSlider').value = value;
+            document.getElementById('moodValue').textContent = value;
+            currentMood = value;
+        }
+
+        // Submit mood to server
+        async function submitMood() {
+            const notes = document.getElementById('moodNotes').value;
+            
+            // Show loading
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('successAlert').style.display = 'none';
+            document.getElementById('errorAlert').style.display = 'none';
+            
+            try {
+                const response = await fetch('/log_mood_daily', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'mood_score': currentMood,
+                        'energy_level': currentEnergy,
+                        'stress_level': currentStress,
+                        'notes': notes
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // Show success message
+                    document.getElementById('successAlert').style.display = 'block';
+                    
+                    // Show AI suggestions
+                    showAISuggestions(data.suggestions, data.adaptations);
+                    
+                    // Hide loading
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    
+                    // Clear notes
+                    document.getElementById('moodNotes').value = '';
+                    
+                    // Auto-refresh after 3 seconds to show updated mood
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                } else {
+                    throw new Error(data.message || 'Failed to log mood');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorAlert').style.display = 'block';
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        }
+
+        // Display AI suggestions
+        function showAISuggestions(suggestions, adaptations) {
+            const suggestionsDiv = document.getElementById('aiSuggestions');
+            const suggestionsList = document.getElementById('suggestionsList');
+            
+            // Clear previous suggestions
+            suggestionsList.innerHTML = '';
+            
+            // Add wellbeing suggestions
+            if (suggestions && suggestions.length > 0) {
+                suggestions.forEach(suggestion => {
+                    const suggestionDiv = document.createElement('div');
+                    suggestionDiv.className = 'suggestion-item';
+                    suggestionDiv.innerHTML = `
+                        <div class="suggestion-icon">💡</div>
+                        <div>${suggestion}</div>
+                    `;
+                    suggestionsList.appendChild(suggestionDiv);
+                });
+            }
+            
+            // Add schedule adaptations
+            if (adaptations && adaptations.length > 0) {
+                adaptations.forEach(adaptation => {
+                    const suggestionDiv = document.createElement('div');
+                    suggestionDiv.className = 'suggestion-item';
+                    suggestionDiv.innerHTML = `
+                        <div class="suggestion-icon">🔄</div>
+                        <div>
+                            <strong>Schedule Adjustment:</strong> ${adaptation.reason}
+                            ${adaptation.original ? `<br><small>Replacing "${adaptation.original.topic_name}" with "${adaptation.suggestion.topic_name}"</small>` : ''}
+                        </div>
+                    `;
+                    suggestionsList.appendChild(suggestionDiv);
+                });
+            }
+            
+            // Add default suggestions based on mood
+            addDefaultSuggestions();
+            
+            // Show the suggestions section
+            suggestionsDiv.style.display = 'block';
+            
+            // Scroll to suggestions
+            suggestionsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Add default suggestions based on current mood
+        function addDefaultSuggestions() {
+            const suggestionsList = document.getElementById('suggestionsList');
+            
+            if (currentMood <= 2) {
+                const suggestionDiv = document.createElement('div');
+                suggestionDiv.className = 'suggestion-item';
+                suggestionDiv.innerHTML = `
+                    <div class="suggestion-icon">😊</div>
+                    <div><strong>Low Mood Detected:</strong> AI will schedule lighter topics and include more breaks</div>
+                `;
+                suggestionsList.appendChild(suggestionDiv);
+            }
+            
+            if (currentEnergy >= 4) {
+                const suggestionDiv = document.createElement('div');
+                suggestionDiv.className = 'suggestion-item';
+                suggestionDiv.innerHTML = `
+                    <div class="suggestion-icon">⚡</div>
+                    <div><strong>High Energy:</strong> Perfect time for challenging topics and practice tests</div>
+                `;
+                suggestionsList.appendChild(suggestionDiv);
+            }
+            
+            if (currentStress >= 4) {
+                const suggestionDiv = document.createElement('div');
+                suggestionDiv.className = 'suggestion-item';
+                suggestionDiv.innerHTML = `
+                    <div class="suggestion-icon">🧘</div>
+                    <div><strong>High Stress:</strong> Consider taking a 10-minute meditation break</div>
+                `;
+                suggestionsList.appendChild(suggestionDiv);
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Alt + 1-5 for quick mood selection
+            if (e.altKey && e.key >= '1' && e.key <= '5') {
+                e.preventDefault();
+                selectMood(parseInt(e.key));
+            }
+            
+            // Alt + Enter to submit
+            if (e.altKey && e.key === 'Enter') {
+                e.preventDefault();
+                submitMood();
+            }
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeMoodTracker);
+    </script>
+</body>
+</html>

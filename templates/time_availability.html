@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Availability - AI Study Planner</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .nav-btn { padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .nav-btn:hover { background: var(--secondary); }
+        .section { background: white; padding: 25px; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: var(--primary); margin-top: 0; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        .btn { padding: 12px 25px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: var(--secondary); }
+        .constraints-list { margin-top: 20px; }
+        .constraint-item { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid var(--primary); }
+        .constraint-type { display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 12px; margin-right: 10px; }
+        .holiday { background: #ffd166; color: #333; }
+        .health { background: #ef476f; color: white; }
+        .commitment { background: #06d6a0; color: white; }
+        .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 15px; }
+        .day-box { padding: 15px; text-align: center; border: 2px solid #ddd; border-radius: 5px; cursor: pointer; }
+        .day-box.selected { border-color: var(--primary); background: #e9ecef; }
+        .time-slots { margin-top: 20px; }
+        .time-slot { display: inline-block; padding: 8px 15px; margin: 5px; background: #e9ecef; border-radius: 5px; cursor: pointer; }
+        .time-slot.selected { background: var(--primary); color: white; }
+        .back-btn { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="back-btn">
+            <a href="/dashboard" class="nav-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="header">
+            <h1>⏰ Time Availability</h1>
+            <div>
+                <a href="/dashboard" class="nav-btn">Dashboard</a>
+                <a href="/ai_schedule_generator" class="nav-btn">Generate Schedule</a>
+            </div>
+        </div>
+
+        <!-- Weekly Availability -->
+        <div class="section">
+            <h2>📅 Weekly Availability</h2>
+            <p>Select days when you're available for studying:</p>
+            
+            <div class="week-grid">
+                <div class="day-box" onclick="toggleDay(this)" data-day="monday">Monday</div>
+                <div class="day-box" onclick="toggleDay(this)" data-day="tuesday">Tuesday</div>
+                <div class="day-box" onclick="toggleDay(this)" data-day="wednesday">Wednesday</div>
+                <div class="day-box" onclick="toggleDay(this)" data-day="thursday">Thursday</div>
+                <div class="day-box" onclick="toggleDay(this)" data-day="friday">Friday</div>
+                <div class="day-box" onclick="toggleDay(this)" data-day="saturday">Saturday</div>
+                <div class="day-box" onclick="toggleDay(this)" data-day="sunday">Sunday</div>
+            </div>
+            
+            <div class="time-slots">
+                <p>Preferred Study Times:</p>
+                <div>
+                    <span class="time-slot" onclick="toggleTimeSlot(this)" data-time="morning">🌅 Morning (6 AM - 12 PM)</span>
+                    <span class="time-slot" onclick="toggleTimeSlot(this)" data-time="afternoon">🌞 Afternoon (12 PM - 5 PM)</span>
+                    <span class="time-slot" onclick="toggleTimeSlot(this)" data-time="evening">🌇 Evening (5 PM - 9 PM)</span>
+                    <span class="time-slot" onclick="toggleTimeSlot(this)" data-time="night">🌙 Night (9 PM - 12 AM)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Study Preferences -->
+        <div class="section">
+            <h2>📝 Daily Study Preferences</h2>
+            <form method="POST" action="/save_time_preferences">
+                <div class="form-group">
+                    <label for="daily_hours">Daily Study Hours:</label>
+                    <input type="range" id="daily_hours" name="daily_hours" min="1" max="12" value="{{ preferences.daily_study_hours if preferences else 4 }}" oninput="updateHoursValue(this.value)">
+                    <span id="hoursValue">{{ preferences.daily_study_hours if preferences else 4 }}</span> hours
+                </div>
+                
+                <div class="form-group">
+                    <label for="preferred_slot">Preferred Study Slot:</label>
+                    <select id="preferred_slot" name="preferred_slot">
+                        <option value="morning" {% if preferences and preferences.preferred_study_slot == 'morning' %}selected{% endif %}>🌅 Morning</option>
+                        <option value="afternoon" {% if preferences and preferences.preferred_study_slot == 'afternoon' %}selected{% endif %}>🌞 Afternoon</option>
+                        <option value="evening" {% if preferences and preferences.preferred_study_slot == 'evening' %}selected{% endif %}>🌇 Evening</option>
+                        <option value="night" {% if preferences and preferences.preferred_study_slot == 'night' %}selected{% endif %}>🌙 Night</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="break_length">Break Length (minutes):</label>
+                    <input type="number" id="break_length" name="break_length" min="5" max="60" value="{{ preferences.break_length_minutes if preferences else 15 }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="max_daily_load">Maximum Daily Load (hours):</label>
+                    <input type="number" id="max_daily_load" name="max_daily_load" min="1" max="16" value="{{ preferences.max_daily_load_hours if preferences else 8 }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="sleep_time">Sleep Time:</label>
+                    <input type="time" id="sleep_time" name="sleep_time" value="{{ preferences.sleep_time if preferences else '23:00' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="wake_up_time">Wake Up Time:</label>
+                    <input type="time" id="wake_up_time" name="wake_up_time" value="{{ preferences.wake_up_time if preferences else '07:00' }}">
+                </div>
+                
+                <button type="submit" class="btn">💾 Save Preferences</button>
+            </form>
+        </div>
+
+        <!-- Constraints Management -->
+        <div class="section">
+            <h2>🚫 Constraints & Exceptions</h2>
+            <p>Add dates when you cannot study (holidays, health issues, commitments):</p>
+            
+            <form method="POST" action="/add_constraint">
+                <div class="form-group">
+                    <label for="constraint_date">Date:</label>
+                    <input type="date" id="constraint_date" name="constraint_date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="constraint_type">Type:</label>
+                    <select id="constraint_type" name="constraint_type" required>
+                        <option value="holiday">🏖️ Holiday/Vacation</option>
+                        <option value="health">🏥 Health/Medical</option>
+                        <option value="commitment">📅 Fixed Commitment</option>
+                        <option value="exam">📝 Exam Day</option>
+                        <option value="travel">✈️ Travel</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <input type="text" id="description" name="description" placeholder="e.g., Family vacation, Doctor appointment">
+                </div>
+                
+                <div class="form-group">
+                    <label>Time Constraint (optional):</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="time" name="start_time" placeholder="Start time">
+                        <input type="time" name="end_time" placeholder="End time">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn">➕ Add Constraint</button>
+            </form>
+            
+            {% if constraints %}
+            <div class="constraints-list">
+                <h3>Existing Constraints:</h3>
+                {% for constraint in constraints %}
+                <div class="constraint-item">
+                    <span class="constraint-type {{ constraint.constraint_type }}">
+                        {% if constraint.constraint_type == 'holiday' %}🏖️
+                        {% elif constraint.constraint_type == 'health' %}🏥
+                        {% elif constraint.constraint_type == 'commitment' %}📅
+                        {% else %}⏰{% endif %}
+                        {{ constraint.constraint_type|capitalize }}
+                    </span>
+                    <strong>{{ constraint.constraint_date }}</strong>
+                    {% if constraint.description %}<p>{{ constraint.description }}</p>{% endif %}
+                    {% if constraint.start_time and constraint.end_time %}
+                    <small>⏰ {{ constraint.start_time }} - {{ constraint.end_time }}</small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Device & Internet Status -->
+        <div class="section">
+            <h2>💻 Device & Internet Availability</h2>
+            <form>
+                <div class="form-group">
+                    <label>Available Devices:</label>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <label><input type="checkbox" name="device" value="laptop"> 💻 Laptop</label>
+                        <label><input type="checkbox" name="device" value="tablet"> 📱 Tablet</label>
+                        <label><input type="checkbox" name="device" value="phone"> 📱 Smartphone</label>
+                        <label><input type="checkbox" name="device" value="desktop"> 🖥️ Desktop</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Internet Access:</label>
+                    <div>
+                        <label><input type="radio" name="internet" value="always" checked> 🌐 Always Available</label>
+                        <label><input type="radio" name="internet" value="limited"> 📶 Limited (WiFi only)</label>
+                        <label><input type="radio" name="internet" value="offline"> 📴 Mostly Offline</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="offline_hours">Offline Study Hours (per day):</label>
+                    <input type="number" id="offline_hours" name="offline_hours" min="0" max="24" value="2">
+                </div>
+                
+                <button type="button" class="btn" onclick="saveDeviceSettings()">💾 Save Settings</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleDay(element) {
+            element.classList.toggle('selected');
+        }
+        
+        function toggleTimeSlot(element) {
+            element.classList.toggle('selected');
+        }
+        
+        function updateHoursValue(value) {
+            document.getElementById('hoursValue').textContent = value;
+        }
+        
+        function saveDeviceSettings() {
+            alert('Device settings saved! The AI will consider these when generating study plans.');
+            // In a real app, you would send this to the server
+        }
+        
+        // Set minimum date for constraints to today
+        document.getElementById('constraint_date').min = new Date().toISOString().split('T')[0];
+        
+        // Load saved preferences for days and time slots
+        document.addEventListener('DOMContentLoaded', function() {
+            // This would be populated from server in real app
+            const savedDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+            const savedSlots = ['morning', 'evening'];
+            
+            savedDays.forEach(day => {
+                const elem = document.querySelector(`[data-day="${day}"]`);
+                if (elem) elem.classList.add('selected');
+            });
+            
+            savedSlots.forEach(slot => {
+                const elem = document.querySelector(`[data-time="${slot}"]`);
+                if (elem) elem.classList.add('selected');
+            });
+        });
+    </script>
+</body>
+</html>

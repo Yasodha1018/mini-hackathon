@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Profile - AI Study Planner</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .setup-container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .setup-header {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .setup-header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .setup-header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+        }
+        .setup-progress {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .progress-step {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+        }
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ddd;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .step-circle.active {
+            background: var(--primary);
+            color: white;
+        }
+        .step-text {
+            color: #666;
+            font-size: 14px;
+        }
+        .step-text.active {
+            color: var(--primary);
+            font-weight: bold;
+        }
+        .setup-content {
+            padding: 40px;
+        }
+        .setup-step {
+            display: none;
+        }
+        .setup-step.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        .btn {
+            padding: 15px 30px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: var(--secondary);
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .setup-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+        .option-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .option-card {
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .option-card:hover {
+            border-color: var(--primary);
+            background: #f8f9fa;
+        }
+        .option-card.selected {
+            border-color: var(--primary);
+            background: #e3f2fd;
+        }
+        .option-card i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .skip-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .skip-link a {
+            color: #666;
+            text-decoration: none;
+        }
+        .skip-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="setup-header">
+            <h1>🎓 Welcome to AI Study Planner!</h1>
+            <p>Let's set up your personalized study experience</p>
+        </div>
+        
+        <div class="setup-progress">
+            <div class="progress-step">
+                <div class="step-circle active">1</div>
+                <div class="step-text active">Basic Info</div>
+            </div>
+            <div class="progress-step">
+                <div class="step-circle">2</div>
+                <div class="step-text">Study Goals</div>
+            </div>
+            <div class="progress-step">
+                <div class="step-circle">3</div>
+                <div class="step-text">Time Availability</div>
+            </div>
+            <div class="progress-step">
+                <div class="step-circle">4</div>
+                <div class="step-text">Preferences</div>
+            </div>
+        </div>
+        
+        <form method="POST" action="/save_profile_setup">
+            <div class="setup-content">
+                <!-- Step 1: Basic Info -->
+                <div class="setup-step active" id="step1">
+                    <h2>📋 Basic Information</h2>
+                    <p>Tell us about yourself so we can create the best study plan for you.</p>
+                    
+                    <div class="form-group">
+                        <label for="education_level">Education Level:</label>
+                        <select id="education_level" name="education_level" required>
+                            <option value="">Select your level</option>
+                            <option value="school">🏫 School (6th-10th)</option>
+                            <option value="high_school">🎓 High School (11th-12th)</option>
+                            <option value="undergrad">🎓 Undergraduate (College)</option>
+                            <option value="postgrad">🎓 Postgraduate</option>
+                            <option value="competitive">📚 Competitive Exams</option>
+                            <option value="professional">💼 Professional Certification</option>
+                            <option value="self_study">📖 Self Study</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="field_of_study">Field of Study:</label>
+                        <input type="text" id="field_of_study" name="field_of_study" placeholder="e.g., Science, Engineering, Medicine, Commerce" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Current Academic Year/Semester:</label>
+                        <input type="text" name="academic_year" placeholder="e.g., 2nd Year, Semester 3">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="study_style">How do you prefer to study?</label>
+                        <div class="option-grid">
+                            <div class="option-card" onclick="selectOption(this, 'visual')">
+                                <div>👁️</div>
+                                <div>Visual Learner</div>
+                            </div>
+                            <div class="option-card" onclick="selectOption(this, 'auditory')">
+                                <div>👂</div>
+                                <div>Auditory Learner</div>
+                            </div>
+                            <div class="option-card" onclick="selectOption(this, 'kinesthetic')">
+                                <div>✋</div>
+                                <div>Hands-on Learner</div>
+                            </div>
+                            <div class="option-card" onclick="selectOption(this, 'reading')">
+                                <div>📖</div>
+                                <div>Reading/Writing</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="study_style" name="study_style" value="visual">
+                    </div>
+                </div>
+                
+                <!-- Step 2: Study Goals -->
+                <div class="setup-step" id="step2">
+                    <h2>🎯 Study Goals</h2>
+                    <p>What do you want to achieve with this study planner?</p>
+                    
+                    <div class="form-group">
+                        <label>Primary Goal:</label>
+                        <div class="option-grid">
+                            <div class="option-card" onclick="selectGoal(this, 'exam_prep')">
+                                <div>📝</div>
+                                <div>Exam Preparation</div>
+                            </div>
+                            <div class="option-card" onclick="selectGoal(this, 'grade_improvement')">
+                                <div>📈</div>
+                                <div>Grade Improvement</div>
+                            </div>
+                            <div class="option-card" onclick="selectGoal(this, 'skill_development')">
+                                <div>💡</div>
+                                <div>Skill Development</div>
+                            </div>
+                            <div class="option-card" onclick="selectGoal(this, 'competitive_exam')">
+                                <div>🏆</div>
+                                <div>Competitive Exam</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="primary_goal" name="primary_goal" value="exam_prep">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="target_timeframe">Target Timeframe:</label>
+                        <select id="target_timeframe" name="target_timeframe">
+                            <option value="1_month">1 Month</option>
+                            <option value="3_months">3 Months</option>
+                            <option value="6_months">6 Months</option>
+                            <option value="1_year">1 Year</option>
+                            <option value="flexible">Flexible</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="target_performance">Target Performance Level:</label>
+                        <select id="target_performance" name="target_performance">
+                            <option value="just_pass">Just Pass</option>
+                            <option value="above_average">Above Average</option>
+                            <option value="good" selected>Good (80%+)</option>
+                            <option value="excellent">Excellent (90%+)</option>
+                            <option value="top">Top of Class</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="weekly_commitment">Weekly Study Commitment:</label>
+                        <select id="weekly_commitment" name="weekly_commitment">
+                            <option value="light">Light (5-10 hours)</option>
+                            <option value="moderate" selected>Moderate (10-20 hours)</option>
+                            <option value="serious">Serious (20-30 hours)</option>
+                            <option value="intensive">Intensive (30+ hours)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Time Availability -->
+                <div class="setup-step" id="step3">
+                    <h2>⏰ Time Availability</h2>
+                    <p>When do you prefer to study? This helps create a realistic schedule.</p>
+                    
+                    <div class="form-group">
+                        <label for="daily_hours">Daily Study Hours:</label>
+                        <input type="range" id="daily_hours" name="daily_hours" min="1" max="12" value="4" oninput="updateHoursValue(this.value)">
+                        <span id="hoursValue">4</span> hours per day
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Preferred Study Time:</label>
+                        <div class="option-grid">
+                            <div class="option-card" onclick="selectTimeSlot(this, 'morning')">
+                                <div>🌅</div>
+                                <div>Morning<br>(6 AM - 12 PM)</div>
+                            </div>
+                            <div class="option-card" onclick="selectTimeSlot(this, 'afternoon')">
+                                <div>🌞</div>
+                                <div>Afternoon<br>(12 PM - 5 PM)</div>
+                            </div>
+                            <div class="option-card" onclick="selectTimeSlot(this, 'evening')">
+                                <div>🌇</div>
+                                <div>Evening<br>(5 PM - 9 PM)</div>
+                            </div>
+                            <div class="option-card" onclick="selectTimeSlot(this, 'night')">
+                                <div>🌙</div>
+                                <div>Night<br>(9 PM - 12 AM)</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="preferred_slot" name="preferred_slot" value="morning">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="break_length">Preferred Break Length:</label>
+                        <select id="break_length" name="break_length">
+                            <option value="5">5 minutes</option>
+                            <option value="10">10 minutes</option>
+                            <option value="15" selected>15 minutes</option>
+                            <option value="20">20 minutes</option>
+                            <option value="30">30 minutes</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Study Days per Week:</label>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                            <label><input type="checkbox" name="study_day" value="monday" checked> Monday</label>
+                            <label><input type="checkbox" name="study_day" value="tuesday" checked> Tuesday</label>
+                            <label><input type="checkbox" name="study_day" value="wednesday" checked> Wednesday</label>
+                            <label><input type="checkbox" name="study_day" value="thursday" checked> Thursday</label>
+                            <label><input type="checkbox" name="study_day" value="friday" checked> Friday</label>
+                            <label><input type="checkbox" name="study_day" value="saturday"> Saturday</label>
+                            <label><input type="checkbox" name="study_day" value="sunday"> Sunday</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 4: Preferences -->
+                <div class="setup-step" id="step4">
+                    <h2>⚙️ Study Preferences</h2>
+                    <p>Customize how you want to study with our AI planner.</p>
+                    
+                    <div class="form-group">
+                        <label for="study_method">Preferred Study Method:</label>
+                        <select id="study_method" name="study_method">
+                            <option value="reading">📖 Reading & Notes</option>
+                            <option value="videos">📺 Video Lectures</option>
+                            <option value="problems">📝 Practice Problems</option>
+                            <option value="learning">💡 Active Learning</option>
+                            <option value="mixed">🔄 Mixed Methods</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>AI Assistance Level:</label>
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px;">
+                            <label>
+                                <input type="radio" name="ai_level" value="guided" checked> 
+                                <strong>Guided</strong> - AI suggests, you decide
+                            </label>
+                            <label>
+                                <input type="radio" name="ai_level" value="balanced"> 
+                                <strong>Balanced</strong> - AI creates plan, you can modify
+                            </label>
+                            <label>
+                                <input type="radio" name="ai_level" value="automatic"> 
+                                <strong>Automatic</strong> - Full AI control with adaptations
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Notification Preferences:</label>
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px;">
+                            <label><input type="checkbox" name="notifications" value="session_reminders" checked> Session reminders</label>
+                            <label><input type="checkbox" name="notifications" value="deadline_alerts" checked> Deadline alerts</label>
+                            <label><input type="checkbox" name="notifications" value="progress_reports"> Weekly progress reports</label>
+                            <label><input type="checkbox" name="notifications" value="motivational"> Motivational messages</label>
+                            <label><input type="checkbox" name="notifications" value="break_reminders" checked> Break reminders</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="theme">Appearance Theme:</label>
+                        <select id="theme" name="theme">
+                            <option value="light">☀️ Light</option>
+                            <option value="dark">🌙 Dark</option>
+                            <option value="auto">🔄 Auto (System)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="setup-actions">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep()">← Previous</button>
+                        <button type="submit" class="btn">🚀 Complete Setup</button>
+                    </div>
+                </div>
+                
+                <!-- Navigation for steps 1-3 -->
+                <div class="setup-actions" id="stepNavigation" style="display: none;">
+                    <button type="button" class="btn btn-secondary" onclick="previousStep()">← Previous</button>
+                    <button type="button" class="btn" onclick="nextStep()">Next →</button>
+                </div>
+            </div>
+        </form>
+        
+        <div class="skip-link">
+            <a href="/dashboard">Skip setup for now →</a>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+        
+        function updateProgress() {
+            // Update progress circles
+            document.querySelectorAll('.step-circle').forEach((circle, index) => {
+                if (index + 1 === currentStep) {
+                    circle.classList.add('active');
+                    circle.nextElementSibling.classList.add('active');
+                } else if (index + 1 < currentStep) {
+                    circle.classList.add('active');
+                    circle.nextElementSibling.classList.add('active');
+                } else {
+                    circle.classList.remove('active');
+                    circle.nextElementSibling.classList.remove('active');
+                }
+            });
+            
+            // Show/hide steps
+            document.querySelectorAll('.setup-step').forEach((step, index) => {
+                if (index + 1 === currentStep) {
+                    step.classList.add('active');
+                } else {
+                    step.classList.remove('active');
+                }
+            });
+            
+            // Show/hide navigation
+            const stepNavigation = document.getElementById('stepNavigation');
+            if (currentStep < totalSteps) {
+                stepNavigation.style.display = 'flex';
+            } else {
+                stepNavigation.style.display = 'none';
+            }
+        }
+        
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateProgress();
+            }
+        }
+        
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateProgress();
+            }
+        }
+        
+        function selectOption(element, value) {
+            document.querySelectorAll('#step1 .option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            document.getElementById('study_style').value = value;
+        }
+        
+        function selectGoal(element, value) {
+            document.querySelectorAll('#step2 .option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            document.getElementById('primary_goal').value = value;
+        }
+        
+        function selectTimeSlot(element, value) {
+            document.querySelectorAll('#step3 .option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            document.getElementById('preferred_slot').value = value;
+        }
+        
+        function updateHoursValue(value) {
+            document.getElementById('hoursValue').textContent = value;
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateProgress();
+            
+            // Select first options by default
+            document.querySelector('#step1 .option-card').classList.add('selected');
+            document.querySelector('#step2 .option-card').classList.add('selected');
+            document.querySelector('#step3 .option-card').classList.add('selected');
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                nextStep();
+            } else if (e.key === 'ArrowLeft') {
+                previousStep();
+            }
+        });
+    </script>
+</body>
+</html>
