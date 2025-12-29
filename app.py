@@ -69,6 +69,9 @@ class AdvancedStudyPlannerAI:
             'learning': {'time_factor': 1.0, 'efficiency': 0.85}
         }
     
+    
+
+
     def calculate_topic_complexity(self, topic_name, subject_area):
         """Simple AI to estimate topic complexity"""
         complexity_keywords = {
