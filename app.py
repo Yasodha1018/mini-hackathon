@@ -62,19 +62,19 @@ class AIAPIConfig:
     """Configuration for AI APIs"""
     
     # Google Gemini API (Free - up to 60 requests per minute)
-    GEMINI_API_KEY = "AIzaSyBI1cCEO5bvlaW5e86z0mEVTdNImCaH_1U"  # Replace with your key
-    GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+    #GEMINI_API_KEY = "AIzaSyBI1cCEO5bvlaW5e86z0mEVTdNImCaH_1U"  # Replace with your key
+    #GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
     
     # OpenRouter (Access to multiple models including Claude, GPT-4, etc.)
-    OPENROUTER_API_KEY = "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"  # Get from https://openrouter.ai
-    OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+   # OPENROUTER_API_KEY = "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"  # Get from https://openrouter.ai
+   # OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
     
     # Hugging Face Inference API (Free)
-    HUGGINGFACE_API_KEY = "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"  # Get from https://huggingface.co
-    HUGGINGFACE_URL = "https://api-inference.huggingface.co/models"
+   # HUGGINGFACE_API_KEY = "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"  # Get from https://huggingface.co
+   # HUGGINGFACE_URL = "https://api-inference.huggingface.co/models"
     
     # Local Ollama (If installed locally)
-    OLLAMA_URL = "http://localhost:11434/api/generate"
+   # OLLAMA_URL = "http://localhost:11434/api/generate"
 
 # ========== AI TUTOR CLASS ==========
 
