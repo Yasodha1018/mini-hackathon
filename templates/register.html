@@ -1,21 +1,379 @@
-
-# templates/register.html
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Register</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - AI Study Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .left-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #4A00E0, #8E2DE2);
+            color: white;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .left-panel h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        .left-panel p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        .features-list {
+            list-style: none;
+        }
+        .features-list li {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .features-list li::before {
+            content: "✓";
+            background: rgba(255,255,255,0.2);
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .right-panel {
+            flex: 1;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            color: #4A00E0;
+        }
+        .logo h2 {
+            font-size: 1.8rem;
+        }
+        .logo-icon {
+            font-size: 2rem;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #4A00E0;
+            box-shadow: 0 0 0 3px rgba(74, 0, 224, 0.1);
+        }
+        .form-group input.error {
+            border-color: #dc3545;
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4A00E0, #8E2DE2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(74, 0, 224, 0.3);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e0e0e0;
+        }
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            color: #666;
+        }
+        .login-link a {
+            color: #4A00E0;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid #28a745;
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .left-panel {
+                padding: 30px;
+            }
+            .right-panel {
+                padding: 30px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Register</h1>
-    <form method="POST">
-        <input type="text" name="full_name" placeholder="Full Name" required><br>
-        <input type="text" name="username" placeholder="Username" required><br>
-        <input type="email" name="email" placeholder="Email" required><br>
-        <input type="password" name="password" placeholder="Password" required><br>
-        <button type="submit">Register</button>
-    </form>
-    <a href="/login">Already have an account? Login</a>
+    <div class="container">
+        <!-- Left Panel - Welcome Message -->
+        <div class="left-panel">
+            <h1>Join AI Study Planner</h1>
+            <p>Create your account and start studying smarter today. Our AI-powered platform will help you achieve academic success with personalized study plans.</p>
+            <ul class="features-list">
+                <li>Personalized AI study schedules</li>
+                <li>Progress tracking & analytics</li>
+                <li>AI tutor for instant help</li>
+                <li>Smart reminders & notifications</li>
+                <li>Mobile friendly - study anywhere</li>
+            </ul>
+            <p style="margin-top: auto; font-size: 0.9rem; opacity: 0.7;">Join thousands of successful students worldwide</p>
+        </div>
+
+        <!-- Right Panel - Registration Form -->
+        <div class="right-panel">
+            <div class="logo">
+                <div class="logo-icon">📚</div>
+                <h2>Create Account</h2>
+            </div>
+
+            <!-- Display flash messages if any -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="success-message" id="flashMessage">
+                        {{ messages[0] }}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="/register" onsubmit="return validateForm()">
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" required placeholder="Enter your full name">
+                    <div class="error-message" id="nameError">Please enter your full name</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required placeholder="Choose a username">
+                    <div class="error-message" id="usernameError">Username must be 3-20 characters</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="Enter your email">
+                    <div class="error-message" id="emailError">Please enter a valid email address</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="Create a strong password">
+                    <div class="error-message" id="passwordError">Password must be at least 8 characters</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required placeholder="Confirm your password">
+                    <div class="error-message" id="confirmError">Passwords do not match</div>
+                </div>
+
+                <button type="submit" class="btn">Create Account</button>
+            </form>
+
+            <div class="login-link">
+                Already have an account? <a href="/login">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Form validation
+        function validateForm() {
+            let isValid = true;
+            
+            // Reset errors
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('input').forEach(el => {
+                el.classList.remove('error');
+            });
+
+            // Validate full name
+            const fullName = document.getElementById('full_name').value.trim();
+            if (fullName.length < 2) {
+                document.getElementById('nameError').style.display = 'block';
+                document.getElementById('full_name').classList.add('error');
+                isValid = false;
+            }
+
+            // Validate username
+            const username = document.getElementById('username').value.trim();
+            if (username.length < 3 || username.length > 20) {
+                document.getElementById('usernameError').style.display = 'block';
+                document.getElementById('username').classList.add('error');
+                isValid = false;
+            }
+
+            // Validate email
+            const email = document.getElementById('email').value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                document.getElementById('emailError').style.display = 'block';
+                document.getElementById('email').classList.add('error');
+                isValid = false;
+            }
+
+            // Validate password
+            const password = document.getElementById('password').value;
+            if (password.length < 8) {
+                document.getElementById('passwordError').style.display = 'block';
+                document.getElementById('password').classList.add('error');
+                isValid = false;
+            }
+
+            // Validate password confirmation
+            const confirmPassword = document.getElementById('confirm_password').value;
+            if (password !== confirmPassword) {
+                document.getElementById('confirmError').style.display = 'block';
+                document.getElementById('confirm_password').classList.add('error');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // Real-time validation
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('blur', function() {
+                validateField(this);
+            });
+        });
+
+        function validateField(field) {
+            const value = field.value.trim();
+            let error = '';
+
+            switch(field.id) {
+                case 'full_name':
+                    if (value.length < 2) error = 'Please enter your full name';
+                    break;
+                case 'username':
+                    if (value.length < 3 || value.length > 20) error = 'Username must be 3-20 characters';
+                    break;
+                case 'email':
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(value)) error = 'Please enter a valid email';
+                    break;
+                case 'password':
+                    if (value.length < 8) error = 'Password must be at least 8 characters';
+                    break;
+                case 'confirm_password':
+                    const password = document.getElementById('password').value;
+                    if (value !== password) error = 'Passwords do not match';
+                    break;
+            }
+
+            const errorElement = document.getElementById(field.id + 'Error');
+            if (error) {
+                errorElement.textContent = error;
+                errorElement.style.display = 'block';
+                field.classList.add('error');
+            } else {
+                errorElement.style.display = 'none';
+                field.classList.remove('error');
+            }
+        }
+
+        // Show flash message if exists
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessage = document.getElementById('flashMessage');
+            if (flashMessage) {
+                flashMessage.style.display = 'block';
+                setTimeout(() => {
+                    flashMessage.style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
 </body>
 </html>
-
